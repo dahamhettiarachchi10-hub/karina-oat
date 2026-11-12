@@ -1,0 +1,1 @@
+window.QUESTION_BANK_MANIFEST = ["2026-11-12.js"];

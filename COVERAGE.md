@@ -36,3 +36,11 @@ Guides and questions are original adaptations of the source concepts, not a verb
 Total: 24 sections, 127 topics, 854 questions. Every topic has recall practice, and each chapter has six Boss questions. The original 25 question IDs are retained; 8 cell questions now belong to chapter 2.
 
 Progress: existing XP and valid question mastery are retained. Chapter crowns and best scores are recalculated for the expanded curriculum rather than carrying over completion of the original smaller chapter. Existing exports can still be imported.
+
+## Complete material inside the site
+
+All 136 original PDF pages are available in the built-in sourcebook with full-page images and text views. Each of the 24 Learn sections opens its complete page range; the introductory pages 1–3 are in the full sourcebook. This is complete original source material alongside concise study guides, rather than a claim that the summaries reproduce every detail.
+
+## Additional question releases
+
+The immutable foundation remains 854 questions. The November 12, 2026 release adds 50 independently authored questions, with page references and explanations, across all 24 chapters (two each, with one additional item in chapters 1 and 6). Initial combined total: 904. Later releases are listed in `bank/manifest.js` and retained permanently. Chapter question counts in the table above describe the foundation bank.

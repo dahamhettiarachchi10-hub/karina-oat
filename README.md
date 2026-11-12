@@ -4,9 +4,9 @@ A static, mobile-first study app. Plain HTML, CSS, and ES2020 JavaScript. No bac
 
 ## Source curriculum
 
-All 24 biology chapters/subchapters from the supplied 136-page **Bio notes.pdf** are organized into 127 study topics and 854 questions, including six Boss questions per chapter. The supplied folder had two identical PDF copies. It contains biology material rather than every subject in the OAT. See `COVERAGE.md` for the chapter/topic/page mapping.
+All 24 biology chapters/subchapters from the supplied 136-page **Bio notes.pdf** are organized into 127 study topics and 854 foundation questions, plus an expanding bank of dated question releases, including six Boss questions per chapter. The supplied folder had two identical PDF copies. It contains biology material rather than every subject in the OAT. See `COVERAGE.md` for the chapter/topic/page mapping.
 
-Original study guides summarize the concepts, with chapter and topic links into the bundled complete PDF at `source/bio-notes.pdf`, preserving access to every original figure and example. Google Drive links identify the supplied source. Existing visual design and study modes are retained.
+Original study guides summarize the concepts. Each Learn section now includes a complete chapter reader, and Home links to the full 136-page sourcebook. Original page images preserve every figure, table, equation, and label; text views support reading and searching. The unchanged PDF remains at `source/bio-notes.pdf`. Google Drive links identify the supplied source. Existing visual design and study modes are retained.
 
 Existing question mastery and XP persist. The original 25 question IDs are retained; cell questions move into chapter 2. Expanded chapter crowns/best scores and outdated section quiz sessions reset on the content revision, preventing completion of the old smaller set from counting as completion of the expanded one. Exported progress remains compatible.
 
@@ -49,3 +49,11 @@ Use Tab / Shift+Tab to navigate, **1–5 or A–E** to answer (including the req
 Settings → Copy progress summary produces a plain-text tutor update. If clipboard permission is unavailable, the app selects the text for manual copying. JSON import/export also works without clipboard access.
 
 The site has no analytics, service worker, or automatic network calls beyond its Google Fonts stylesheet/font files. Adding ordinary sections does not require changes to `/app`. Updating `progressRevision` on a section invalidates its old crown/best score and paused section round while retaining valid question mastery and XP.
+
+## Recurring question bank
+
+The Question Bank adds 50 original questions per release, on a planned two-day cadence. Each dated release remains available in the archive. Fresh 10 uses unseen questions first, then weighted review; the complete batch mode covers all 50. Released questions also appear in their chapter's existing practice modes. Foundation question IDs and the Boss eligibility denominator remain stable. Question mastery, XP, crowns and paused rounds are retained. Incomplete content downloads block progress writes until a successful reload.
+
+The first release is November 12, 2026: 50 questions across all 24 chapters, bringing the initial combined total to 904. The original 854 questions are retained. See `BANK_AUTHORING.md` for the repeatable authoring and publication procedure. A scheduled Codex task performs authoring and publishing; the static website does not generate questions or call a paid API. Local scheduled runs require the computer and desktop app to be running.
+
+Checks: `node tools/validate.mjs`, `node --test tools/*.test.mjs`, and `node tools/audit-bank.mjs YYYY-MM-DD`. `node tools/refresh-status.mjs` reports whether another release is due in America/Toronto.

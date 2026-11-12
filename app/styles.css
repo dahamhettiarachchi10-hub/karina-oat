@@ -276,3 +276,23 @@ textarea { width:100%; min-height:140px; resize:vertical; border:1px solid var(-
 h1,h2,h3,h4,.section-card,.side-section { overflow-wrap:anywhere; }
 .brand,.mobile-brand { min-height:44px; }
 .mobile-brand { display:inline-flex; align-items:center; }
+
+/* Question releases and complete chapter reader use the existing card system. */
+.bank-banner { display:flex; gap:24px; align-items:center; justify-content:space-between; }
+.bank-banner .btn { flex-shrink:0; }
+.bank-chapters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 24px; }
+.bank-chapters a { display:flex; justify-content:space-between; gap:12px; font-size:13px; }
+#bank-release { display:block; max-width:100%; margin:12px 0; padding:10px; }
+.source-controls { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:20px 0 12px; }
+.source-controls select { padding:10px; }
+.source-pagination { display:flex; justify-content:space-between; gap:10px; margin:14px 0; }
+.source-figure { margin:18px 0; }
+.source-figure img { display:block; width:100%; height:auto; background:white; border:1px solid var(--line); }
+.source-figure figcaption { color:var(--muted); font-size:12px; margin-top:8px; }
+.source-transcript summary { cursor:pointer; padding:12px 0; }
+.source-transcript pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:14px; line-height:1.65; }
+@media(max-width:600px) {
+  .bank-banner { flex-direction:column; align-items:flex-start; }
+  .bank-chapters { grid-template-columns:1fr; }
+  .source-pagination .btn { padding:10px; font-size:11px; }
+}

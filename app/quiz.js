@@ -2,14 +2,14 @@
   'use strict';
   const EXAM_SECONDS_PER_QUESTION = 50;
   const P = () => window.OATProgress;
-  const MODES = { quick: 'Quick 5', topic: 'Topic drill', full: 'Full set', boss: 'Boss Round', exam: 'Exam mode', mixed: 'Mixed review', review: 'Mistakes Deck', retry: 'Retry missed' };
+  const MODES = { quick: 'Quick 5', topic: 'Topic drill', full: 'Full set', boss: 'Boss Round', exam: 'Exam mode', mixed: 'Mixed review', review: 'Mistakes Deck', retry: 'Retry missed', bank: 'Fresh 10', 'bank-full': 'Batch of 50' };
   const shuffle = a => { const out = [...a]; for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; } return out; };
   function all() { return window.OATContent.sections.flatMap(s => s.questions.map(q => ({ q, s }))); }
-  let questionIndex = new Map(), indexedSections = -1;
+  let questionIndex = new Map(), indexedRevision = -1;
   function find(id) {
-    if (indexedSections !== window.OATContent.sections.length) {
+    if (indexedRevision !== window.OATContent.revision) {
       questionIndex = new Map(all().map(x => [x.q.id, x]));
-      indexedSections = window.OATContent.sections.length;
+      indexedRevision = window.OATContent.revision;
     }
     return questionIndex.get(id);
   }
@@ -22,10 +22,17 @@
       return { q, rank: -Math.log(Math.max(Number.EPSILON, Math.random())) / weight };
     }).sort((a, b) => a.rank - b.rank).slice(0, count).map(x => x.q);
   }
-  function start(mode, sectionId = null, topicId = null, ids = null) {
+  function start(mode, sectionId = null, topicId = null, ids = null, batchId = null) {
     const s = window.OATContent.sections.find(s => s.id === sectionId);
     if (!MODES[mode]) throw new Error('Unknown quiz mode');
     let pool = s ? s.questions : all().map(x => x.q);
+    let batch = null;
+    if (mode === 'bank' || mode === 'bank-full') {
+      batch = batchId ? window.OATContent.batches.find(b => b.id === batchId) : window.OATContent.latestBatch();
+      if (!batch) throw new Error('This question batch could not be found.');
+      if (sectionId !== null) throw new Error('Bank rounds use all chapters in the selected batch.');
+      pool = batch.questions;
+    }
     if (mode === 'topic') pool = pool.filter(q => q.topic === topicId);
     if (mode === 'boss') {
       if (!s || P().attempted(s) < 0.6) throw new Error('Attempt at least 60% of this section to unlock its Boss Round.');
@@ -34,9 +41,14 @@
     if (mode === 'review') pool = pool.filter(q => (ids || P().due()).includes(q.id));
     if (mode === 'retry') pool = pool.filter(q => (ids || []).includes(q.id));
     if (mode === 'mixed' && window.OATContent.sections.length < 2) throw new Error('Mixed review unlocks when a second section is added.');
+    if (mode === 'bank') {
+      const unseen = pool.filter(q => P().mastery(q.id) === 0), seen = pool.filter(q => P().mastery(q.id) > 0);
+      const fresh = weighted(unseen, 10, true);
+      pool = [...fresh, ...weighted(seen, 10 - fresh.length, true)];
+    }
     pool = mode === 'quick' ? weighted(pool, 5) : mode === 'mixed' ? weighted(pool, 10, true) : shuffle(pool);
     if (!pool.length) throw new Error('No questions available for this round.');
-    const session = { mode, sectionId, ids: pool.map(q => q.id), options: Object.fromEntries(pool.map(q => [q.id, shuffle(q.options)])), answers: [], index: 0, combo: 0, maxCombo: 0, totalXP: 0, completed: false, deadline: mode === 'exam' ? Date.now() + pool.length * EXAM_SECONDS_PER_QUESTION * 1000 : null, route: sectionId ? `#/s/${encodeURIComponent(sectionId)}/quiz/${mode}` : `#/review?quiz=${mode}`, events: { badges: [], levelUp: false } };
+    const session = { mode, sectionId, batchId: batch?.id || null, ids: pool.map(q => q.id), options: Object.fromEntries(pool.map(q => [q.id, shuffle(q.options)])), answers: [], index: 0, combo: 0, maxCombo: 0, totalXP: 0, completed: false, deadline: mode === 'exam' ? Date.now() + pool.length * EXAM_SECONDS_PER_QUESTION * 1000 : null, route: batch ? `#/bank?batch=${encodeURIComponent(batch.id)}&quiz=${mode}` : sectionId ? `#/s/${encodeURIComponent(sectionId)}/quiz/${mode}` : `#/review?quiz=${mode}`, events: { badges: [], levelUp: false } };
     P().state.activeQuiz = session; P().save(); return session;
   }
   function answer(choice) {

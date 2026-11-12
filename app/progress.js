@@ -41,14 +41,15 @@
     clean.lastSession = typeof raw.lastSession === 'string' && Number.isFinite(Date.parse(raw.lastSession)) ? raw.lastSession : null;
     // Sessions are restored only if every recorded question still exists and matches the content.
     const a = raw.activeQuiz;
+    const validBatch = !['bank', 'bank-full'].includes(a?.mode) || (a.sectionId === null && Array.isArray(a.ids) && window.OATContent.batches.some(b => b.id === a.batchId && a.ids.every(id => b.questions.some(q => q.id === id))));
     const currentRevision = !a?.sectionId || sections.some(s => s.id === a.sectionId && (!s.progressRevision || raw.sectionRevisions?.[s.id] === s.progressRevision));
-    if (currentRevision && object(a) && ['quick', 'topic', 'full', 'boss', 'exam', 'mixed', 'review', 'retry'].includes(a.mode) && Array.isArray(a.ids) && a.ids.length && new Set(a.ids).size === a.ids.length && a.ids.every(id => questionMap.has(id)) && Array.isArray(a.answers) && a.answers.length <= a.ids.length && a.answers.every((r, i) => object(r) && r.id === a.ids[i] && (r.choice === null || questionMap.get(r.id).q.options.includes(r.choice)) && typeof r.correct === 'boolean' && r.correct === (r.choice === questionMap.get(r.id).q.options[questionMap.get(r.id).q.answer]) && Number.isFinite(r.xp) && r.xp >= 0) && object(a.options) && a.ids.every(id => Array.isArray(a.options[id]) && a.options[id].length === questionMap.get(id).q.options.length && new Set(a.options[id]).size === a.options[id].length && a.options[id].every(v => questionMap.get(id).q.options.includes(v))) && (a.sectionId === null || sections.some(s => s.id === a.sectionId)) && Number.isInteger(a.index) && a.index >= 0 && a.index < a.ids.length && (a.answers.length === a.index || a.answers.length === a.index + 1) && typeof a.completed === 'boolean' && (!a.completed || a.answers.length === a.ids.length) && (a.mode !== 'exam' || Number.isFinite(a.deadline))) {
-      clean.activeQuiz = { mode: a.mode, sectionId: a.sectionId, ids: a.ids, options: a.options, answers: a.answers, index: a.index, completed: a.completed, deadline: a.deadline || null, combo: Math.floor(finite(a.combo)), maxCombo: Math.floor(finite(a.maxCombo)), totalXP: finite(a.totalXP), route: a.sectionId ? `#/s/${encodeURIComponent(a.sectionId)}/quiz/${a.mode}` : `#/review?quiz=${a.mode}`, events: { badges: [], levelUp: false } };
+    if (validBatch && currentRevision && object(a) && ['quick', 'topic', 'full', 'boss', 'exam', 'mixed', 'review', 'retry', 'bank', 'bank-full'].includes(a.mode) && Array.isArray(a.ids) && a.ids.length && new Set(a.ids).size === a.ids.length && a.ids.every(id => questionMap.has(id)) && Array.isArray(a.answers) && a.answers.length <= a.ids.length && a.answers.every((r, i) => object(r) && r.id === a.ids[i] && (r.choice === null || questionMap.get(r.id).q.options.includes(r.choice)) && typeof r.correct === 'boolean' && r.correct === (r.choice === questionMap.get(r.id).q.options[questionMap.get(r.id).q.answer]) && Number.isFinite(r.xp) && r.xp >= 0) && object(a.options) && a.ids.every(id => Array.isArray(a.options[id]) && a.options[id].length === questionMap.get(id).q.options.length && new Set(a.options[id]).size === a.options[id].length && a.options[id].every(v => questionMap.get(id).q.options.includes(v))) && (a.sectionId === null || sections.some(s => s.id === a.sectionId)) && Number.isInteger(a.index) && a.index >= 0 && a.index < a.ids.length && (a.answers.length === a.index || a.answers.length === a.index + 1) && typeof a.completed === 'boolean' && (!a.completed || a.answers.length === a.ids.length) && (a.mode !== 'exam' || Number.isFinite(a.deadline))) {
+      clean.activeQuiz = { mode: a.mode, sectionId: a.sectionId, batchId: ['bank', 'bank-full'].includes(a.mode) ? a.batchId : null, ids: a.ids, options: a.options, answers: a.answers, index: a.index, completed: a.completed, deadline: a.deadline || null, combo: Math.floor(finite(a.combo)), maxCombo: Math.floor(finite(a.maxCombo)), totalXP: finite(a.totalXP), route: ['bank', 'bank-full'].includes(a.mode) ? `#/bank?batch=${encodeURIComponent(a.batchId)}&quiz=${a.mode}` : a.sectionId ? `#/s/${encodeURIComponent(a.sectionId)}/quiz/${a.mode}` : `#/review?quiz=${a.mode}`, events: { badges: [], levelUp: false } };
     }
     clean.sectionRevisions = Object.fromEntries(sections.filter(s => s.progressRevision).map(s => [s.id, s.progressRevision]));
     return clean;
   }
-  function save() { state.sectionRevisions = Object.fromEntries(sections.filter(s => s.progressRevision).map(s => [s.id, s.progressRevision])); try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); storageOK = true; } catch (_) { storageOK = false; } }
+  function save() { if (window.OATContent.errors.length) return; state.sectionRevisions = Object.fromEntries(sections.filter(s => s.progressRevision).map(s => [s.id, s.progressRevision])); try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); storageOK = true; } catch (_) { storageOK = false; } }
   function mastery(qid) { const r = state.questions[qid]; return !r || !r.seen ? 0 : r.correctDates.length >= 2 ? 3 : r.correctDates.length ? 2 : 1; }
   function percent(questions) {
     if (!questions.length) return 0;
@@ -126,13 +127,16 @@
     STORAGE_KEY, LEVEL_NAMES, BADGES, dateKey, dayNumber,
     get state() { return state; }, get storageOK() { return storageOK; },
     init(content) {
+      // Incomplete downloads are temporary, not evidence that saved questions were deleted.
+      if (window.OATContent.errors.length) return false;
       sections = content; questionMap = new Map(sections.flatMap(s => s.questions.map(q => [q.id, { q, s }])));
       try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) state = normalize(JSON.parse(raw)); } catch (_) { storageOK = false; state = fresh(); }
       save();
+      return true;
     },
     save, mastery, percent, level, currentStreak, answer, complete,
     due() { return Object.keys(state.deck).filter(id => questionMap.has(id) && state.deck[id].due <= dateKey()); },
-    attempted(s) { return s.questions.filter(q => mastery(q.id) > 0).length / s.questions.length; },
+    attempted(s) { const ids = s.coreQuestionIds || s.questions.map(q => q.id); return ids.filter(id => mastery(id) > 0).length / ids.length; },
     reviewed(sid, tid) {
       const key = `${sid}/${tid}`;
       if (state.reviewed[key]) return false;
