@@ -1,1 +1,1 @@
-window.QUESTION_BANK_MANIFEST = ["2026-11-12.js"];
+window.QUESTION_BANK_MANIFEST = ["2026-11-12.js", "2026-11-16.js"];
