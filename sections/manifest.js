@@ -22,5 +22,18 @@ window.SECTION_MANIFEST = [
   "bio-12-diversity-of-life.js",
   "bio-13-evolution.js",
   "bio-14-ecology.js",
-  "bio-15-animal-behavior.js"
+  "bio-15-animal-behavior.js",
+  "gc-foundation.js",
+  "gc-solutions.js",
+  "gc-equilibrium.js",
+  "gc-energy.js",
+  "oc-structure.js",
+  "oc-analysis.js",
+  "oc-reactions.js",
+  "oc-carbonyl.js",
+  "ph-motion.js",
+  "ph-energy.js",
+  "ph-fluids-waves.js",
+  "ph-electric.js",
+  "ph-optics.js"
 ];

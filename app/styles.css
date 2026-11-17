@@ -85,7 +85,7 @@ code { font-size:.9em; background:var(--wash); padding:2px 5px; border-radius:4p
 .btn.amber { background:var(--amber); color:var(--navy); }
 .btn.small { padding:9px 13px; font-size:12px; min-height:44px; }
 .btn.danger { background:transparent; color:var(--ink); border-color:var(--line); }
-.stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:22px 0 36px; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin:22px 0 36px; }
 .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; display:flex; align-items:center; gap:15px; box-shadow:var(--shadow); }
 .stat-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:10px; background:var(--teal-wash); color:var(--primary); font-size:20px; flex-shrink:0; }
 .stat:nth-child(2) .stat-icon { background:var(--amber-wash); color:#9b650e; }
@@ -249,7 +249,7 @@ textarea { width:100%; min-height:140px; resize:vertical; border:1px solid var(-
   .mobile-xp .progress-track { background:#ffffff20; margin-top:3px; height:3px; }
   .mobile-xp .progress-track span { background:var(--amber); }
   .mobile-streak { font-family:'DM Mono',monospace; font-size:12px; color:var(--amber-light); }
-  #bottom-nav { display:grid; grid-template-columns:repeat(4,1fr); position:fixed; inset:auto 0 0; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:var(--navy); z-index:10; border-top:1px solid #ffffff10; }
+  #bottom-nav { display:grid; grid-template-columns:repeat(5,1fr); position:fixed; inset:auto 0 0; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); background:var(--navy); z-index:10; border-top:1px solid #ffffff10; }
   #bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:52px; color:#aebed0; font-size:9px; }
   #bottom-nav a .nav-icon { font-size:20px; }
   #bottom-nav a.active { color:#66d4c0; }
@@ -296,3 +296,12 @@ h1,h2,h3,h4,.section-card,.side-section { overflow-wrap:anywhere; }
   .bank-chapters { grid-template-columns:1fr; }
   .source-pagination .btn { padding:10px; font-size:11px; }
 }
+
+.plan-actions,.day-picker {display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:12px 0;}
+.day-picker a {min-width:42px;text-align:center;justify-content:center;}
+.plan-day h2 {margin:8px 0 10px;}
+.plan-day > p:not(.eyebrow) {font-size:15px;line-height:1.55;}
+.lesson-figure {margin:16px 0;color:var(--muted);font-size:12px;}
+.lesson-figure img {width:min(100%,600px);display:block;background:white;border-radius:8px;margin-bottom:6px;}
+
+@media(max-width:600px) { .stats {grid-template-columns:repeat(2,minmax(0,1fr));} }

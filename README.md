@@ -2,6 +2,10 @@
 
 A static, mobile-first study app. Plain HTML, CSS, and ES2020 JavaScript. No backend, framework, runtime npm dependencies, or build step. Google Fonts is its only external resource; system fonts work offline.
 
+## 14-day OAT plan
+
+Home opens the next unchecked day. The science diagnostic, worked examples, 129 additional questions, and timed rounds support the priority General Chemistry, Organic Chemistry, and Physics modules. See [the source and study map](SCIENCE-14-DAY.md). The Biology sourcebook, archived releases and existing progress remain compatible.
+
 ## Source curriculum
 
 All 24 biology chapters/subchapters from the supplied 136-page **Bio notes.pdf** are organized into 127 study topics and 854 foundation questions, plus an expanding bank of dated question releases, including six Boss questions per chapter. The supplied folder had two identical PDF copies. It contains biology material rather than every subject in the OAT. See `COVERAGE.md` for the chapter/topic/page mapping.

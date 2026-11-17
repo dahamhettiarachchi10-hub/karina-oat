@@ -12,7 +12,7 @@
     x.setUTCDate(x.getUTCDate() + 4 - (x.getUTCDay() || 7));
     return `${x.getUTCFullYear()}-W${Math.ceil(((x - new Date(Date.UTC(x.getUTCFullYear(), 0, 1))) / DAY + 1) / 7)}`;
   }
-  const fresh = () => ({ version: 1, xp: 0, questions: {}, reviewed: {}, deck: {}, bosses: {}, best: {}, sectionRevisions: {}, badges: [], stats: { quizzes: 0, maxCombo: 0, cleared: 0, perfect5: false, examReady: false, night: false, early: false }, streak: { count: 0, lastDay: null, frozenWeek: null }, settings: { sound: false, reducedMotion: false, theme: 'system' }, lastSession: null, activeQuiz: null });
+  const fresh = () => ({ version: 1, planDays: [], xp: 0, questions: {}, reviewed: {}, deck: {}, bosses: {}, best: {}, sectionRevisions: {}, badges: [], stats: { quizzes: 0, maxCombo: 0, cleared: 0, perfect5: false, examReady: false, night: false, early: false }, streak: { count: 0, lastDay: null, frozenWeek: null }, settings: { sound: false, reducedMotion: false, theme: 'system' }, lastSession: null, activeQuiz: null });
   let state = fresh(), sections = [], questionMap = new Map(), storageOK = true;
   const finite = (v, fallback = 0) => Number.isFinite(v) && v >= 0 ? v : fallback;
   const object = v => v && typeof v === 'object' && !Array.isArray(v);
@@ -21,10 +21,12 @@
     if (!object(raw) || raw.version !== 1) throw new Error('This is not a version 1 OAT progress export.');
     const clean = fresh();
     clean.xp = finite(raw.xp);
+    if (Array.isArray(raw.planDays)) clean.planDays = [...new Set(raw.planDays.filter(n => Number.isInteger(n) && n >= 1 && n <= 14))];
     for (const [id, q] of questionMap) {
       const r = raw.questions && raw.questions[id];
       if (!object(r)) continue;
       clean.questions[id] = { attempts: Math.floor(finite(r.attempts)), correctDates: Array.isArray(r.correctDates) ? [...new Set(r.correctDates.filter(validDate))].slice(-2) : [], seen: !!r.seen };
+      if (typeof r.firstCorrect === 'boolean') clean.questions[id].firstCorrect = r.firstCorrect;
       const card = raw.deck && raw.deck[id];
       if (object(card) && validDate(card.due)) clean.deck[id] = { due: card.due, step: Math.min(2, Math.floor(finite(card.step))), run: Math.min(1, Math.floor(finite(card.run))) };
     }
@@ -43,7 +45,7 @@
     const a = raw.activeQuiz;
     const validBatch = !['bank', 'bank-full'].includes(a?.mode) || (a.sectionId === null && Array.isArray(a.ids) && window.OATContent.batches.some(b => b.id === a.batchId && a.ids.every(id => b.questions.some(q => q.id === id))));
     const currentRevision = !a?.sectionId || sections.some(s => s.id === a.sectionId && (!s.progressRevision || raw.sectionRevisions?.[s.id] === s.progressRevision));
-    if (validBatch && currentRevision && object(a) && ['quick', 'topic', 'full', 'boss', 'exam', 'mixed', 'review', 'retry', 'bank', 'bank-full'].includes(a.mode) && Array.isArray(a.ids) && a.ids.length && new Set(a.ids).size === a.ids.length && a.ids.every(id => questionMap.has(id)) && Array.isArray(a.answers) && a.answers.length <= a.ids.length && a.answers.every((r, i) => object(r) && r.id === a.ids[i] && (r.choice === null || questionMap.get(r.id).q.options.includes(r.choice)) && typeof r.correct === 'boolean' && r.correct === (r.choice === questionMap.get(r.id).q.options[questionMap.get(r.id).q.answer]) && Number.isFinite(r.xp) && r.xp >= 0) && object(a.options) && a.ids.every(id => Array.isArray(a.options[id]) && a.options[id].length === questionMap.get(id).q.options.length && new Set(a.options[id]).size === a.options[id].length && a.options[id].every(v => questionMap.get(id).q.options.includes(v))) && (a.sectionId === null || sections.some(s => s.id === a.sectionId)) && Number.isInteger(a.index) && a.index >= 0 && a.index < a.ids.length && (a.answers.length === a.index || a.answers.length === a.index + 1) && typeof a.completed === 'boolean' && (!a.completed || a.answers.length === a.ids.length) && (a.mode !== 'exam' || Number.isFinite(a.deadline))) {
+    if (validBatch && currentRevision && object(a) && ['quick', 'topic', 'full', 'boss', 'exam', 'mixed', 'review', 'retry', 'bank', 'bank-full', ...window.OATQuiz.planModes].includes(a.mode) && Array.isArray(a.ids) && a.ids.length && new Set(a.ids).size === a.ids.length && a.ids.every(id => questionMap.has(id)) && Array.isArray(a.answers) && a.answers.length <= a.ids.length && a.answers.every((r, i) => object(r) && r.id === a.ids[i] && (r.choice === null || questionMap.get(r.id).q.options.includes(r.choice)) && typeof r.correct === 'boolean' && r.correct === (r.choice === questionMap.get(r.id).q.options[questionMap.get(r.id).q.answer]) && Number.isFinite(r.xp) && r.xp >= 0) && object(a.options) && a.ids.every(id => Array.isArray(a.options[id]) && a.options[id].length === questionMap.get(id).q.options.length && new Set(a.options[id]).size === a.options[id].length && a.options[id].every(v => questionMap.get(id).q.options.includes(v))) && (a.sectionId === null || sections.some(s => s.id === a.sectionId)) && Number.isInteger(a.index) && a.index >= 0 && a.index < a.ids.length && (a.answers.length === a.index || a.answers.length === a.index + 1) && typeof a.completed === 'boolean' && (!a.completed || a.answers.length === a.ids.length) && (!window.OATQuiz.isTimed(a.mode) || Number.isFinite(a.deadline)) && (!window.OATQuiz.planModes.includes(a.mode) || a.sectionId === null)) {
       clean.activeQuiz = { mode: a.mode, sectionId: a.sectionId, batchId: ['bank', 'bank-full'].includes(a.mode) ? a.batchId : null, ids: a.ids, options: a.options, answers: a.answers, index: a.index, completed: a.completed, deadline: a.deadline || null, combo: Math.floor(finite(a.combo)), maxCombo: Math.floor(finite(a.maxCombo)), totalXP: finite(a.totalXP), route: ['bank', 'bank-full'].includes(a.mode) ? `#/bank?batch=${encodeURIComponent(a.batchId)}&quiz=${a.mode}` : a.sectionId ? `#/s/${encodeURIComponent(a.sectionId)}/quiz/${a.mode}` : `#/review?quiz=${a.mode}`, events: { badges: [], levelUp: false } };
     }
     clean.sectionRevisions = Object.fromEntries(sections.filter(s => s.progressRevision).map(s => [s.id, s.progressRevision]));
@@ -86,6 +88,7 @@
     const r = state.questions[q.id] || { attempts: 0, correctDates: [], seen: false };
     const base = correct ? XP[q.difficulty] * (r.attempts === 0 ? 1 : 0.5) : 0;
     const earned = base * (combo >= 5 ? 2 : combo >= 3 ? 1.5 : 1);
+    if (r.attempts === 0) r.firstCorrect = correct;
     r.seen = true; r.attempts++;
     if (correct && !r.correctDates.includes(dateKey())) r.correctDates = [...r.correctDates, dateKey()].slice(-2);
     state.questions[q.id] = r; state.xp += earned;
@@ -135,6 +138,14 @@
       return true;
     },
     save, mastery, percent, level, currentStreak, answer, complete,
+    flag(qid) {
+      if (!questionMap.has(qid) || !state.questions[qid]?.seen || state.deck[qid]) return false;
+      state.deck[qid] = { due: afterDays(1), step: 0, run: 0 }; save(); return true;
+    },
+    markDay(day) {
+      if (!Number.isInteger(day) || day < 1 || day > 14) return;
+      state.planDays = state.planDays.includes(day) ? state.planDays.filter(n => n !== day) : [...state.planDays, day]; save();
+    },
     due() { return Object.keys(state.deck).filter(id => questionMap.has(id) && state.deck[id].due <= dateKey()); },
     attempted(s) { const ids = s.coreQuestionIds || s.questions.map(q => q.id); return ids.filter(id => mastery(id) > 0).length / ids.length; },
     reviewed(sid, tid) {

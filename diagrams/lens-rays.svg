@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 224" role="img" aria-labelledby="title">
+<title id="title">A converging lens forms a real inverted image</title>
+<rect width="640" height="224" rx="8" fill="#f9f7f2"/>
+<g stroke="#6d7b80" stroke-width="1.5"><path d="M25 140H615"/><path d="M280 135v10m180-10v10"/></g>
+<path d="M370 44Q351 140 370 211Q389 140 370 44Z" fill="#d6f0eb" stroke="#23796e" stroke-width="2"/>
+<path d="M150 80H370L522 181.5M150 80L522 181.5" fill="none" stroke="#c66a20" stroke-width="2.5"/>
+<path d="M150 140V80m-6 7 6-7 6 7M522 140v41m-6-7 6 7 6-7" fill="none" stroke="#182b43" stroke-width="3"/>
+<g fill="#182b43" font-family="system-ui,sans-serif" font-size="16"><text x="120" y="69">Object</text><text x="274" y="163">F</text><text x="452" y="163">F</text><text x="319" y="30">Converging lens</text><text x="476" y="206">Real image</text></g>
+</svg>

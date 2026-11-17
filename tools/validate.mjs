@@ -20,6 +20,9 @@ try {
       vm.runInContext(fs.readFileSync(path.join(root, 'sections', name), 'utf8'), context, { timeout: 1000, filename: name });
       if (context.window.OATContent.sections.length !== before + 1) throw new Error('File must register exactly one section');
       const s = context.window.OATContent.sections.at(-1);
+      for (const t of s.topics) for (const n of t.notes.filter(n=>n.type==='diagram')) {
+        if (!/^diagrams\/[a-z0-9-]+\.svg$/.test(n.src) || !fs.existsSync(path.join(root,n.src))) throw new Error('Missing diagram for '+t.id);
+      }
       console.log(`PASS ${name} — ${s.topics.length} topics, ${s.questions.length} questions, ${s.questions.filter(q => q.mustGet).length} boss questions`);
     } catch (error) { failed = true; console.error(`FAIL ${name} — ${error.message}`); }
   }
@@ -45,7 +48,7 @@ try {
     const bytes=fs.readFileSync(path.join(root,p.image));
     if (bytes.subarray(0,4).toString()!=='RIFF' || bytes.subarray(8,12).toString()!=='WEBP') throw new Error('Invalid source image: '+p.image);
   }
-  const chapterPages=context.window.OATContent.sections.flatMap(s=>Array.from({length:s.sourcePages[1]-s.sourcePages[0]+1},(_,i)=>s.sourcePages[0]+i));
+  const chapterPages=context.window.OATContent.sections.filter(s=>s.subject==='Biology').flatMap(s=>Array.from({length:s.sourcePages[1]-s.sourcePages[0]+1},(_,i)=>s.sourcePages[0]+i));
   if (chapterPages.length!==133 || new Set(chapterPages).size!==133 || chapterPages.some((n,i)=>n!==i+4)) throw new Error('Chapter source ranges must cover pages 4–136 without gaps');
   console.log('PASS complete source reader — 136 page images and text; source hash and chapter ranges verified');
   if (!manifest.length) { failed = true; console.error('FAIL manifest.js — no sections'); }

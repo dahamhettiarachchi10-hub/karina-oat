@@ -16,13 +16,13 @@ function app(options={}) {
  run('app/progress.js');run('app/quiz.js');
  const C=ctx.window.OATContent,P=ctx.window.OATProgress,Q=ctx.window.OATQuiz;
  if(options.omitBank)C.errors.push('batch download failed');
- const initialized=P.init(C.sections);return {C,P,Q,initialized,get saved(){return saved;},register:ctx.window.registerQuestionBatch,run};
+ const initialized=P.init(C.sections);return {C,P,Q,window:ctx.window,initialized,get saved(){return saved;},register:ctx.window.registerQuestionBatch,run};
 }
 test('the first release adds exactly 50 original questions across all 24 chapters',()=>{
  const {C}=app();assert(C.batches?.length>=1);assert.equal(C.batches[0].questions.length,50);
  assert.equal(new Set(C.batches[0].questions.map(q=>q.section)).size,24);
- assert.equal(C.sections.flatMap(s=>s.questions).length,854+50*C.batches.length);
- assert.equal(C.sections.reduce((n,s)=>n+s.coreQuestionIds.length,0),854);
+ assert.equal(C.sections.filter(s=>s.subject==='Biology').flatMap(s=>s.questions).length,854+50*C.batches.length);
+ assert.equal(C.sections.filter(s=>s.subject==='Biology').reduce((n,s)=>n+s.coreQuestionIds.length,0),854);
 });
 test('an invalid or duplicate batch is rejected atomically',()=>{
  const {C,register}=app();assert.equal(typeof register,'function');
@@ -62,4 +62,35 @@ test('a failed batch load cannot erase history, mistakes or a paused round acros
  const first=app();const a=first.Q.start('bank');const q=first.Q.find(a.ids[0]).q;first.Q.answer(q.options[(q.answer+1)%q.options.length]);const before=first.P.export();
  const failed=app({saved:before,omitBank:true});assert.equal(failed.initialized,false);failed.P.save();assert.equal(failed.saved,before);
  const recovered=app({saved:failed.saved});assert.equal(recovered.P.state.questions[q.id].attempts,1);assert(recovered.P.state.deck[q.id]);assert.equal(recovered.P.state.activeQuiz.ids[0],q.id);
+});
+
+test('diagnostic and timed sets match exact subject counts and use unique IDs',()=>{
+ const {C,P,Q}=app();
+ const count=a=>Object.fromEntries(['Biology','General Chemistry','Organic Chemistry','Physics'].map(subject=>[subject,a.ids.filter(id=>Q.find(id).s.subject===subject).length]));
+ const d=Q.start('diagnostic');assert.deepEqual(count(d),{Biology:6,'General Chemistry':6,'Organic Chemistry':6,Physics:6});
+ const start=Date.now();const science=Q.start('science-timed');assert.deepEqual(count(science),{Biology:40,'General Chemistry':30,'Organic Chemistry':30,Physics:0});
+ assert.equal(new Set(science.ids).size,100);assert(science.deadline>=start+90*60_000 && science.deadline<=Date.now()+90*60_000);
+ P.init(C.sections);assert.equal(P.state.activeQuiz?.mode,'science-timed');
+ const physics=Q.start('physics-timed');assert.equal(count(physics).Physics,40);assert.equal(new Set(physics.ids).size,40);
+ assert(physics.deadline-Date.now()<=50*60_000 && physics.deadline-Date.now()>49*60_000);
+ Q.expire();assert(physics.completed);assert.equal(physics.answers.length,40);
+});
+
+test('guesses persist in the deck and repair prioritizes unseen related skills',()=>{
+ const {C,P,Q}=app();const q=Q.find('gc-solutions-gases-2').q;
+ P.answer(q,true,1);assert(P.flag(q.id));assert(!P.flag(q.id));
+ const r=Q.start('repair');assert(r.ids.length>0);assert(!r.ids.includes(q.id));
+ assert(r.ids.every(id=>Q.find(id).q.skill===q.skill || Q.find(id).q.topic===q.topic));
+ P.init(C.sections);assert(P.state.deck[q.id]);assert.equal(P.state.questions[q.id].firstCorrect,true);assert.equal(P.state.activeQuiz.mode,'repair');
+ P.answer(q,false,0);assert.equal(P.state.questions[q.id].firstCorrect,true);
+});
+
+test('all study days render with valid module links and first unchecked day is selected',()=>{
+ const {C,P,run,window}=app();run('app/prep-plan.js');const dayModule=window.OATPrepPlan;
+ const read=dayModule.days;
+ assert.equal(read.length,14);
+ for(const [,, ,links] of read) for(const id of links) assert(id==='biology'||C.sections.some(s=>s.id===id),id);
+ assert.match(dayModule.plan(new URLSearchParams()),/Start 24-question diagnostic/);
+ P.markDay(1);assert.equal(dayModule.nextDay(),2);P.init(C.sections);assert.equal(dayModule.nextDay(),2);
+ assert.match(dayModule.plan(new URLSearchParams('day=12')),/Start timed Physics/);
 });
