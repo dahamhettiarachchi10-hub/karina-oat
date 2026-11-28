@@ -248,7 +248,7 @@ registerQuestionBatch({
         46
       ],
       "difficulty": "application",
-      "stem": "In the standard ABO inheritance model, one parent is I^A I^B and the other is ii. Which offspring phenotypes are possible from this cross, assuming ordinary segregation and expression?",
+      "stem": "In the standard ABO inheritance model, one parent is Iᴬ Iᴮ and the other is ii. Which offspring phenotypes are possible from this cross, assuming ordinary segregation and expression?",
       "options": [
         "Type AB or type O, with neither A nor B expected.",
         "Only type AB, because codominance forces both alleles into every gamete.",
@@ -256,7 +256,7 @@ registerQuestionBatch({
         "Type A or type B, with neither AB nor O expected."
       ],
       "answer": 3,
-      "explanation": "The AB parent contributes either I^A or I^B, while the O parent contributes i. The offspring are therefore I^A i or I^B i. Codominance describes expression in a heterozygote, not inheritance of both homologous alleles in each gamete; population-wide allele options do not determine a particular cross.",
+      "explanation": "The AB parent contributes either Iᴬ or Iᴮ, while the O parent contributes i. The offspring are therefore Iᴬ i or Iᴮ i. Codominance describes expression in a heterozygote, not inheritance of both homologous alleles in each gamete; population-wide allele options do not determine a particular cross.",
       "id": "bio-r20261128-014"
     },
     {
@@ -641,7 +641,7 @@ registerQuestionBatch({
         "H+ secretion into tubular fluid is the same direction as H+ reabsorption into blood."
       ],
       "answer": 0,
-      "explanation": "Secretion describes a transport step toward tubular fluid, whereas excretion concerns final output. Bicarbonate conservation identifies base retained in blood. The measured steps alone do not quantify net body-acid removal: bicarbonate reclamation can involve H+ secretion without net acid excretion. See the [renal physiology reference](https://pmc.ncbi.nlm.nih.gov/articles/PMC2878276/) for that distinction.",
+      "explanation": "Secretion describes a transport step toward tubular fluid, whereas excretion concerns final output. Bicarbonate conservation identifies base retained in blood. The measured steps alone do not quantify net body-acid removal: bicarbonate reclamation can involve H+ secretion without net acid excretion. Further physiology reference: Bobulescu and Moe, Na+/H+ Exchangers in Renal Regulation of Acid-Base Balance (PMCID: PMC2878276).",
       "id": "bio-r20261128-035"
     },
     {
